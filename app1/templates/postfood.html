@@ -1,0 +1,414 @@
+{%load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Post Food - Mother's Kitchen</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+
+    <!-- Leaflet JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+
+        #search-box {
+            width: 300px;
+            padding: 10px;
+            font-size: 16px;
+            position: relative;
+        }
+
+        .autocomplete-dropdown {
+            position: absolute;
+            top: 650px;
+            left: 440px;
+            width: 300px;
+            background: white;
+            border: 1px solid #ccc;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .autocomplete-item {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .autocomplete-item:hover {
+            background: #f0f0f0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff3e0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 1s ease-in-out forwards;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 50px;
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            color: white;
+            position: fixed;
+            width: 95%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            height: 90px;
+        }
+
+        .navbar img {
+            height: 50px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            transition: 0.3s ease-in-out;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+
+        /* Container for form */
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            text-align: center;
+            margin-top: 100px;
+            /* To prevent overlap with fixed navbar */
+        }
+
+        h2 {
+            color: #e63946;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input,
+        textarea,
+        button {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            background: #e63946;
+            color: white;
+            cursor: pointer;
+            border: none;
+        }
+
+        button:hover {
+            background: #d62828;
+        }
+
+        /* Flash Message Styling */
+        .messages {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 16px;
+            text-align: center;
+            border-radius: 5px;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Dialog Box Styles */
+        .dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dialog-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            width: 300px;
+        }
+
+        .dialog-box h3 {
+            color: green;
+            margin-bottom: 20px;
+        }
+
+        .dialog-box button {
+            background: green;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .dialog-box button:hover {
+            background: green;
+        }
+    </style>
+</head>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Initialize the map
+        var map = L.map('map').setView([20.5937, 78.9629], 5); // Default: India
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+        var marker = L.marker([20.5937, 78.9629]).addTo(map);
+
+        // Autocomplete functionality
+        const searchBox = document.getElementById("search-box");
+        const resultsContainer = document.getElementById("autocomplete-results");
+
+        searchBox.addEventListener("input", function () {
+            let query = searchBox.value.trim();
+            if (query.length < 2) {
+                resultsContainer.style.display = "none";
+                return;
+            }
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsContainer.innerHTML = "";
+                    if (data.length === 0) {
+                        resultsContainer.style.display = "none";
+                        return;
+                    }
+
+                    data.forEach(place => {
+                        let item = document.createElement("div");
+                        item.classList.add("autocomplete-item");
+                        item.textContent = place.display_name;
+                        item.addEventListener("click", function () {
+                            searchBox.value = place.display_name;
+                            document.getElementById("location").value = place.display_name;
+                            document.getElementById("latitude").value = place.lat;
+                            document.getElementById("longitude").value = place.lon;
+                            resultsContainer.style.display = "none";
+                            updateMap(place.lat, place.lon);
+                        });
+                        resultsContainer.appendChild(item);
+                    });
+
+                    resultsContainer.style.display = "block";
+                })
+                .catch(error => {
+                    console.error("Error fetching Nominatim API:", error);
+                });
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener("click", function (e) {
+            if (!searchBox.contains(e.target) && !resultsContainer.contains(e.target)) {
+                resultsContainer.style.display = "none";
+            }
+        });
+
+        // Function to update the map
+        function updateMap(lat, lon) {
+            map.setView([lat, lon], 12);
+            marker.setLatLng([lat, lon]);
+        }
+
+        // Click event on the map to update location
+        map.on("click", function (e) {
+            let lat = e.latlng.lat;
+            let lon = e.latlng.lng;
+            updateMap(lat, lon);
+
+            // Reverse geocode to get location name
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.display_name) {
+                        searchBox.value = data.display_name;
+                        document.getElementById("location").value = data.display_name;
+                    }
+                });
+        });
+    });
+</script>
+
+
+<body>
+
+    <!-- Navbar Positioned at the Top -->
+    <div class="navbar">
+        <img src="{% static 'images/logo2.png' %}" alt="Logo" style="height: 90px;width: 200px;">
+        <div class="nav-links">
+            <a href="{% url 'chefhm' %}">Home</a>
+            <a href="{% url 'postfood' %}">Post Food</a>
+            <a href="{% url 'chef_profile' %}">Profile</a>
+            <a href="#">Reviews</a>
+            <a href="#">Orders</a>
+            <a href="{% url 'home' %}">Logout</a>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <h2>Post Food</h2>
+        <form id="postFoodForm" action="{% url 'postfood' %}" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="text" name="title" placeholder="Food Title" required>
+            <textarea name="desc" placeholder="Description" required></textarea>
+            <input type="file" name="image" required>
+            <input type="file" name="image1" required>
+            <input type="file" name="image2" required>
+            <input type="number" name="price" placeholder="Price" required>
+            <input type="hidden" id="location" name="location">
+            <input id="search-box" type="text" placeholder="Search for a location..." autocomplete="off">
+            <input type="hidden" id="latitude" name="latitude">
+            <input type="hidden" id="longitude" name="longitude">
+            <div id="autocomplete-results" class="autocomplete-dropdown">
+            </div>
+            <div id="map"></div>
+            <input type="number" name="quantity" placeholder="Quantity" required>
+            <label>Meals</label>
+            <div class="radio-group">
+                <label><input type="radio" name="meal" value="Breakfast" required> Breakfast </label>
+                <label><input type="radio" name="meal" value="Lunch" required> Lunch </label>
+                <label><input type="radio" name="meal" value="Snacks" required> Snacks </label>
+                <label><input type="radio" name="meal" value="Dinner" required> Dinner </label>
+            </div>
+            <label>Dining Type</label>
+            <div class="radio-group">
+                <label><input type="radio" name="dine" value="Dine-in" required> Dine-in </label>
+                <label><input type="radio" name="dine" value="Take away" required> Take away </label>
+            </div>
+            <button type="submit">Post Food</button>
+        </form>
+    </div>
+
+    <!-- Dialog Box for Success Message -->
+    <div class="dialog-overlay" id="dialogOverlay">
+        <div class="dialog-box">
+            <h3 id="dialogMessage">Food Posted Successfully!</h3>
+            <button onclick="closeDialog()">OK</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById("postFoodForm");
+            const dialogOverlay = document.getElementById("dialogOverlay");
+            const dialogMessage = document.getElementById("dialogMessage");
+
+            if (!form || !dialogOverlay || !dialogMessage) {
+                console.error("Required elements not found!");
+                return;
+            }
+
+            form.addEventListener("submit", function (event) {
+                event.preventDefault(); // Prevent default form submission
+
+                // Collect form data
+                const formData = new FormData(form);
+
+                // Send data using Fetch API
+                fetch(form.action, {
+                    method: "POST",
+                    body: formData
+                })
+                    .then(response => {
+                        if (response.redirected) {
+                            showDialog("Food Posted Successfully!", response.url); // Redirect on success
+                        } else {
+                            return response.text().then(errorText => {
+                                throw new Error(errorText);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error("Error:", error);
+                        showDialog("Something went wrong. Please try again.");
+                    });
+            });
+
+            // Function to show the dialog box
+            function showDialog(message, redirectUrl = null) {
+                dialogMessage.textContent = message;
+                dialogOverlay.style.display = "flex";
+
+                // Redirect after clicking OK
+                document.querySelector("#dialogOverlay button").onclick = function () {
+                    dialogOverlay.style.display = "none";
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    }
+                };
+            }
+        });
+    </script>
+</body>
+
+</html>

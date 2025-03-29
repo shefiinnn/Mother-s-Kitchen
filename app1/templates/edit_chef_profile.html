@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Chef Profile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #fff3e0;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        .main-content {
+            margin-top: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeIn 1s ease-in-out forwards;
+        }
+
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 50px;
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            color: white;
+        }
+
+        .navbar img {
+            height: 50px;
+        }
+
+        .container {
+            width: 40%;
+            background: white;
+            padding: 40px;
+            box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            opacity: 0;
+            transform: scale(0.9);
+            animation: fadeInScale 0.8s ease-in-out forwards 0.3s;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: 0.3s ease-in-out;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #ff6f61;
+            box-shadow: 0px 0px 10px rgba(255, 111, 97, 0.3);
+        }
+
+        .btn {
+            background: #ff6f61;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.3s ease-in-out;
+            width: 100%;
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            background: #d84315;
+            transform: translateY(-2px);
+            box-shadow: 0px 5px 15px rgba(216, 67, 21, 0.3);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 50px;
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            color: white;
+            position: fixed;
+            width: 95%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            height: 100px;
+        }
+
+        .navbar img {
+            height: 50px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            transition: 0.3s ease-in-out;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+                /* Animations */
+                @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 1024px) {
+            .container {
+                width: 60%;
+            }
+            .navbar {
+                padding: 15px 30px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .container {
+                width: 80%;
+                padding: 30px;
+            }
+            .nav-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+            .navbar {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
+            .navbar {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .btn {
+                font-size: 16px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <img src="{% static 'images/logo2.png' %}" alt="Logo" style="height: 90px;width: 200px;">
+        <div class="nav-links">
+            <a href="{%url 'chefhm' %}">Home</a>
+            <a href="{% url 'postfood' %}">Post Food</a>
+            <a href="{% url 'chef_profile' %}">Profile</a>
+            <a href="#">Reviews</a>
+            <a href="{% url 'chef_orders' %}">Orders</a>
+            <a href="{% url 'home' %}">Logout</a>
+        </div>
+    </div>
+
+
+<div class="main-content">
+    <h1>Edit Profile</h1>
+    <div class="container">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="text" name="username" value="{{ login.username }}" placeholder="UserName" required>
+            <input type="text" name="name" value="{{ chef.name }}" placeholder="Name" required>
+            <input type="text" name="phone" value="{{ chef.phone }}" placeholder="Phone" required>
+            <input type="email" name="email" value="{{ chef.email }}" placeholder="Email" required>
+            <input type="text" name="location" value="{{ chef.location }}" placeholder="Location" required>
+            <input type="text" name="address" value="{{ chef.address }}" placeholder="Address" required>
+            <input type="text" name="accnum" value="{{ chef.accnum }}" placeholder="Account Number" required>
+            <input type="text" name="ifsc" value="{{ chef.ifsc }}" placeholder="IFSC Code" required>
+            
+            <label>Change Profile Picture:</label>
+            <input type="file" name="image">
+            <label>Change ID Card:</label>
+            <input type="file" name="id_card">
+            <button type="submit" class="btn">Save Changes</button>
+        </form>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.querySelector("form");
+
+        form.addEventListener("submit", function (event) {
+            let isValid = true;
+            let errorMessage = "";
+
+            // Get form values
+            const username = form.querySelector("[name='username']").value.trim();
+            const name = form.querySelector("[name='name']").value.trim();
+            const phone = form.querySelector("[name='phone']").value.trim();
+            const email = form.querySelector("[name='email']").value.trim();
+            const location = form.querySelector("[name='location']").value.trim();
+            const address = form.querySelector("[name='address']").value.trim();
+            const accnum = form.querySelector("[name='accnum']").value.trim();
+            const ifsc = form.querySelector("[name='ifsc']").value.trim();
+
+            // File inputs
+            const image = form.querySelector("[name='image']").files.length;
+            const idCard = form.querySelector("[name='id_card']").files.length;
+
+            // Validation rules
+            if (!username.match(/^\w{4,}$/)) {
+                isValid = false;
+                errorMessage += "❌ Username must be at least 4 characters.\n";
+            }
+
+            if (!name.match(/^[a-zA-Z\s]+$/)) {
+                isValid = false;
+                errorMessage += "❌ Name must contain only letters.\n";
+            }
+
+            if (!phone.match(/^\d{10}$/)) {
+                isValid = false;
+                errorMessage += "❌ Phone number must be exactly 10 digits.\n";
+            }
+
+            if (!email.match(/^[^ ]+@[^ ]+\.[a-z]{2,3}$/)) {
+                isValid = false;
+                errorMessage += "❌ Enter a valid email.\n";
+            }
+
+            if (location.length < 3) {
+                isValid = false;
+                errorMessage += "❌ Enter a valid location.\n";
+            }
+
+            if (address.length < 5) {
+                isValid = false;
+                errorMessage += "❌ Enter a valid address.\n";
+            }
+
+            if (!accnum.match(/^\d{9,18}$/)) {
+                isValid = false;
+                errorMessage += "❌ Account number must be 9-18 digits.\n";
+            }
+
+            if (!ifsc.match(/^[A-Z]{4}0[A-Z0-9]{6}$/)) {
+                isValid = false;
+                errorMessage += "❌ Enter a valid IFSC code.\n";
+            }
+
+            // Profile image & ID card are optional but should be valid if uploaded
+            if (image > 0) {
+                const allowedExtensions = ["jpg", "jpeg", "png"];
+                const imageFile = form.querySelector("[name='image']").value.toLowerCase();
+                if (!allowedExtensions.some(ext => imageFile.endsWith(ext))) {
+                    isValid = false;
+                    errorMessage += "❌ Profile image must be JPG, JPEG, or PNG.\n";
+                }
+            }
+
+            if (idCard > 0) {
+                const allowedExtensions = ["jpg", "jpeg", "png", "pdf"];
+                const idCardFile = form.querySelector("[name='id_card']").value.toLowerCase();
+                if (!allowedExtensions.some(ext => idCardFile.endsWith(ext))) {
+                    isValid = false;
+                    errorMessage += "❌ ID Card must be JPG, JPEG, PNG, or PDF.\n";
+                }
+            }
+
+            // Prevent form submission if invalid
+            if (!isValid) {
+                event.preventDefault();
+                alert(errorMessage);
+            }
+        });
+    });
+</script>
+</body>
+</html>

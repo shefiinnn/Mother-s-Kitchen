@@ -1,0 +1,296 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #fff3e0;
+            color: #ffffff;
+            animation: fadeIn 1s ease-in-out forwards;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 40px auto;
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar img {
+            height: 50px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            transition: 0.3s ease-in-out;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 50px;
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            color: white;
+            width: 100%;
+            height: 100px;
+
+        }
+
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #252525;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: #333;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        @media screen and (max-width: 1024px) {
+            .container {
+                width: 60%;
+            }
+
+            .navbar {
+                padding: 15px 30px;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .container {
+                width: 80%;
+                padding: 30px;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .navbar {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
+
+            .navbar {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        tbody tr:hover {
+            background: #2d2d2d;
+            transition: 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            text-align: center;
+            display: inline-block;
+            width: 120px;
+        }
+
+        .pending {
+            background: #f4b400;
+            color: #121212;
+        }
+
+        .accepted {
+            background: #00f974;
+            color: #121212;
+        }
+
+        .declined {
+            background: #f40000;
+            color: #121212;
+        }
+
+        .no-orders {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #888;
+        }
+
+        .accept-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+
+        }
+
+        .accept-btn:hover {
+            background-color: #218838;
+        }
+
+        .decline-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .decline-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+    <html>
+    <div class="navbar">
+        <img src="{% static 'images/logo2.png' %}" alt="Logo" style="height: 90px;width: 200px;">
+        <div class="nav-links">
+            <a href="{%url 'chefhm' %}">Home</a>
+            <a href="{% url 'postfood' %}">Post Food</a>
+            <a href="{% url 'chef_profile' %}">Profile</a>
+            <a href="#">Reviews</a>
+            <a href="{% url 'chef_orders' %}">Orders</a>
+            <a href="{% url 'home' %}">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>My Orders</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Food Item</th>
+                        <th>Quantity</th>
+                        <th>Total Price</th>
+                        <th>Payment Status</th>
+                        <th>Status</th>
+                        <th>Order Time</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.id }}</td>
+                        <td>{{ order.user.name }}</td>
+                        <td>{{ order.food.title }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td><strong>₹{{ order.total_price }}</strong></td>
+                        <td>
+                            <span
+                                class="payment-status {% if order.payment_status %} completed {% else %} pending {% endif %}">
+                                {% if order.payment_status %} Completed {% else %} Pending {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="status 
+                            {% if order.status == 'Pending' %} pending 
+                            {% elif order.status == 'Accepted' %} accepted 
+                            {% elif order.status == 'Declined' %} declined {% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                        <td>
+                            {% if order.status == "Pending" %}
+                            <form method="POST" action="{% url 'update_order_status' order.id %}">
+                                {% csrf_token %}
+                                <button type="submit" name="status" value="Accepted" class="accept-btn">Accept</button>
+                                <button type="submit" name="status" value="Declined" class="decline-btn">Decline</button>
+                            </form>
+                            {% else %}
+                            <span>{{ order.status }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="no-orders">No orders yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    </html>

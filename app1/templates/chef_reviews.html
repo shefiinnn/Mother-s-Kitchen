@@ -1,0 +1,210 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Reviews</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #fff3e0;
+            color: #ffffff;
+            animation: fadeIn 1s ease-in-out forwards;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 40px auto;
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar img {
+            height: 50px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            transition: 0.3s ease-in-out;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 50px;
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            color: white;
+            width: 100%;
+            height: 100px;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #252525;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        thead {
+            background: #333;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        tbody tr:hover {
+            background: #2d2d2d;
+            transition: 0.3s;
+        }
+
+        .rating {
+            font-weight: bold;
+            color: #ffeb3b;
+        }
+
+        .no-reviews {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #888;
+        }
+
+        .review-comment {
+            color: #ddd;
+            font-style: italic;
+        }
+
+        @media screen and (max-width: 768px) {
+            .container {
+                width: 80%;
+                padding: 30px;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .navbar {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
+
+            .navbar {
+                padding: 10px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <img src="{% static 'images/logo2.png' %}" alt="Logo" style="height: 90px;width: 200px;">
+        <div class="nav-links">
+            <a href="{% url 'chefhm' %}">Home</a>
+            <a href="{% url 'postfood' %}">Post Food</a>
+            <a href="{% url 'chef_profile' %}">Profile</a>
+            <a href="{% url 'chef_reviews' %}">Reviews</a>
+            <a href="{% url 'chef_orders' %}">Orders</a>
+            <a href="{% url 'home' %}">Logout</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Customer Reviews</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Rating</th>
+                        <th>Comment</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for review in reviews %}
+                    <tr>
+                        <td>{{ review.user.name }}</td>
+                        <td class="rating">{{ review.rating }} ⭐</td>
+                        <td class="review-comment">"{{ review.comment }}"</td>
+                        <td>{{ review.created_at|date:"M d, Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="no-reviews">No reviews yet.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</body>
+
+</html>

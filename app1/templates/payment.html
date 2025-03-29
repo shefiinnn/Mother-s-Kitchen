@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Order Payment</title>
+</head>
+<body>
+    <h2>Food Payment</h2>
+    <img src="{{ food_image.url }}" alt="Food Image">
+    <h3>{{ food_title }}</h3>
+    <p>Price: ₹{{ food_price }} x {{ quantity }} = ₹{{ amount|floatformat:2 }}</p>
+
+    <form id="payment-form">
+        <script
+            src="https://checkout.razorpay.com/v1/checkout.js"
+            data-key="{{ razorpay_key_id }}"
+            data-amount="{{ amount }}"
+            data-currency="INR"
+            data-order_id="{{ razorpay_order_id }}"
+            data-buttontext="Pay Now"
+            data-name="Mother's Kitchen"
+            data-description="Order payment"
+            data-image="{{ food_image.url }}"
+            data-prefill.name="{{ username }}"
+            data-prefill.email="{{ user.email }}"
+            data-theme.color="#F37254">
+        </script>
+        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+    </form>
+
+    <script>
+        function handlePaymentSuccess(response) {
+            document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
+            document.getElementById('razorpay_order_id').value = response.razorpay_order_id;
+            document.getElementById('razorpay_signature').value = response.razorpay_signature;
+            document.getElementById('payment-form').submit();
+        }
+
+        var rzp = new Razorpay(options);
+        rzp.on('payment.success', handlePaymentSuccess);
+        rzp.open();
+    </script>
+</body>
+</html>

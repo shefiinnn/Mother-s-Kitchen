@@ -1,0 +1,499 @@
+{%load static%}
+<header>
+    <nav class="navbar">
+        <img src="{% static 'images/logo2.png' %}" alt="Logo" style="height: 90px;width: 200px;">
+        <ul class="nav-links">
+            <li><a href="#">Home</a></li>
+            <li><a href="{% url 'user_profile' %}">Profile</a></li>
+            <li><a href="#">Cart</a></li>
+            <li><a href="#">Logout</a></li>
+        </ul>
+    </nav>
+</header>
+<div class="container">
+    <!-- Chef Details -->
+    <div class="chef-info">
+        <img src="{{ chef.image.url }}" alt="{{ chef.name }}" class="chef-photo">
+        <h2 class="chef-name">{{ chef.name }}</h2>
+    </div>
+
+    <div class="food-container">
+        <img src="{{ food.image.url }}" alt="{{ food.title }}" class="food-image">
+        <div class="food-info">
+            <h3>{{ food.title }}</h3>
+            <p><strong>Description:</strong> {{ food.desc }}</p>
+            <p><strong>Location:</strong> {{ food.location }}</p>
+            <p><strong>Price:</strong> ₹<span id="price">{{ food.price }}</span></p>
+            <p><strong>Phone Number</strong> {{ chef.phone }}</p>
+
+        </div>
+    </div>
+    <form id="payment-form" method="POST" action="{% url 'payment_callback' %}">
+        {% csrf_token %}
+        <input type="hidden" id="order_id" value="{{ order.id }}">
+        <input type="hidden" id="razorpay_order_id" value="{{ razorpay_order_id }}">
+        <input type="hidden" id="razorpay_key_id" value="{{ razorpay_key_id }}">
+        <input type="hidden" id="amount" value="{{ amount }}">
+        <input type="hidden" id="chef_accnum" value="{{ chef.accnum }}">
+
+    </form>
+    <form method="POST" action="{% url 'place_order' food.id %}">
+        {% csrf_token %}
+        <div class="quantity-container">
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" min="1" max="{{ food.quantity }}" value="1">
+            <p><strong>Total Price:</strong> ₹<span id="total-price">{{ food.price }}</span></p>
+            <button type="button" id="pay-button" class="add-to-cart">Order Now</button>
+        </div>
+    </form>
+
+    <div>
+        {% if user_type == "user" %}
+        <h4>Add Your Review</h4>
+        <form method="POST" action="{% url 'food_details' food.id %}" class="review-form">
+            {% csrf_token %}
+            <input type="hidden" name="form_type" value="review">
+            <label for="rating">Rating:</label>
+            <div class="star-rating">
+                {% for i in "12345" %}
+                <span class="star" data-value="{{ i }}">&#9733;</span>
+                {% endfor %}
+                <input type="hidden" id="rating-value" name="rating">
+            </div>
+            <label for="description">Comment:</label>
+            <textarea name="description" rows="3"></textarea>
+            <button type="submit" class="submit-review">Add Review</button>
+        </form>
+        {% else %}
+        <p>Only users can leave reviews.</p>
+        {% endif %}
+
+        <!-- Display reviews -->
+        <h4>Chef Reviews</h4>
+        {% for review in reviews %}
+        <div class="review">
+            <strong>{{ review.user.name }}</strong> -
+            <span class="star-rating-display">
+                {% for _ in "12345"|slice:review.rating %}
+                &#9733;
+                {% endfor %}
+            </span>
+            <p>{{ review.comment }}</p>
+        </div>
+        {% empty %}
+        <p>No reviews yet.</p>
+        {% endfor %}
+    </div>
+    <!-- Report to Admin Button -->
+    <button type="button" class="report-btn" data-toggle="modal" data-target="#reportModal">
+        Report to Admin
+    </button>
+
+    <!-- Report Modal -->
+    <div id="reportModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Report Chef to Admin</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="report-form" method="POST" action="{% url 'report_to_admin' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="food_id" value="{{ food.id }}">
+                        <input type="hidden" name="chef_id" value="{{ chef.id }}">
+                        <input type="hidden" name="user_id" value="{{ request.session.uid }}">
+
+                        <p><strong>Food:</strong> {{ food.title }}</p>
+                        <p><strong>Chef:</strong> {{ chef.name }}</p>
+                        <p><strong>Phone:</strong> {{ chef.phone }}</p>
+
+                        <label for="report_comment">Reason for Reporting:</label>
+                        <textarea name="report_comment" rows="4" required></textarea>
+
+                        <button type="submit" class="btn btn-danger">Submit Report</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Styles -->
+    <style>
+        /* Global Styles */
+        body {
+            background-color: #fff3e0;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            padding: 15px 50px;
+            color: white;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            transition: 0.3s ease-in-out;
+            height: 100px;
+        }
+
+        .navbar img {
+            height: 50px;
+            transition: transform 0.3s;
+        }
+
+        .navbar img:hover {
+            transform: scale(1.1);
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+        }
+
+        .nav-links li {
+            margin: 0 15px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Chef Info */
+        .chef-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        .chef-photo {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #ff6f61;
+            transition: transform 0.3s ease;
+        }
+
+        .chef-photo:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .chef-name {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6f61;
+        }
+
+        /* Food Container */
+        .food-container {
+            display: flex;
+            gap: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.8s ease-in-out;
+        }
+
+        .food-image {
+            width: 270px;
+            border-radius: 12px;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .food-image:hover {
+            transform: scale(1.05) rotate(-2deg);
+        }
+
+        /* Price & Order */
+        .price {
+            color: #ff6f61;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .add-to-cart {
+            background: #ff6f61;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0px 4px 6px rgba(255, 111, 97, 0.4);
+        }
+
+        .add-to-cart:hover {
+            background: #ff9f43;
+            transform: translateY(-2px);
+        }
+
+        /* Reviews Section */
+        .reviews {
+            margin-top: 20px;
+        }
+
+        .review-card {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            margin-bottom: 15px;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        .star-rating {
+            display: flex;
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .star {
+            color: #ccc;
+            transition: color 0.2s;
+        }
+
+        .star.hover,
+        .star.selected {
+            color: gold;
+        }
+
+
+        /* Review Form */
+        .review-form {
+            margin-top: 20px;
+            animation: slideIn 0.8s ease-in-out;
+        }
+
+        .submit-review {
+            background: #ff6f61;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-review:hover {
+            background: #ff9f43;
+            transform: translateY(-2px);
+        }
+
+        /* Report Button */
+        .report-btn {
+            background: #dc3545;
+            color: white;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0px 4px 6px rgba(220, 53, 69, 0.4);
+        }
+
+        .report-btn:hover {
+            background: #b52a37;
+            transform: translateY(-2px);
+        }
+
+        /* Modal Styling */
+        .modal-content {
+            border-radius: 10px;
+            background: white;
+            padding: 20px;
+            animation: fadeIn 0.5s ease-in-out;
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            border-bottom: 2px solid #ff6f61;
+        }
+
+        .modal-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ff6f61;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+    </style>
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const pricePerUnit = parseFloat(document.getElementById('price').textContent);
+        const quantityInput = document.getElementById('quantity');
+        const totalPriceElement = document.getElementById('total-price');
+
+        function updatePrice() {
+            const quantity = parseInt(quantityInput.value) || 1;
+            const totalPrice = (pricePerUnit * quantity).toFixed(2);
+            totalPriceElement.textContent = totalPrice;
+        }
+
+        quantityInput.addEventListener("input", updatePrice);
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const stars = document.querySelectorAll(".star");
+            const ratingInput = document.getElementById("rating-value");
+
+            stars.forEach(star => {
+                star.addEventListener("mouseover", function () {
+                    let value = this.getAttribute("data-value");
+                    stars.forEach(s => s.classList.remove("hover"));
+                    for (let i = 0; i < value; i++) {
+                        stars[i].classList.add("hover");
+                    }
+                });
+
+                star.addEventListener("click", function () {
+                    let value = this.getAttribute("data-value");
+                    ratingInput.value = value;
+                    stars.forEach(s => s.classList.remove("selected"));
+                    for (let i = 0; i < value; i++) {
+                        stars[i].classList.add("selected");
+                    }
+                });
+
+                star.addEventListener("mouseout", function () {
+                    stars.forEach(s => s.classList.remove("hover"));
+                });
+            });
+        });
+
+        document.getElementById("pay-button").addEventListener("click", function () {
+            let foodId = "{{ food.id }}";
+            let quantity = document.getElementById("quantity").value;
+            let updatedAmount = (parseFloat("{{ food.price }}") * quantity) * 100; // Convert to paise
+
+            fetch(`/initiate_payment/${foodId}/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: new URLSearchParams({
+                    "quantity": quantity
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.razorpay_order_id || !data.razorpay_key_id) {
+                        alert("Payment failed: Required details are missing!");
+                        return;
+                    }
+
+                    let options = {
+                        "key": data.razorpay_key_id,
+                        "amount": updatedAmount, // Updated amount
+                        "currency": "INR",
+                        "name": "Mother's Kitchen",
+                        "description": "{{ food.title }}",
+                        "image": "{{ food.image.url }}",
+                        "order_id": data.razorpay_order_id,
+
+                        "prefill": {
+                            "name": "{{ user.name }}",
+                            "email": "{{ user.email }}",
+                            "contact": "{{ user.phone }}"
+                        },
+
+                        "notes": {
+                            "Food Name": "{{ food.title }}",
+                            "Quantity": quantity,
+                            "Price": updatedAmount / 100,
+                            "Chef Name": "{{ chef.name }}",
+                            "Chef Account Number": "{{ chef.accnum }}"
+                        },
+
+                        "handler": function (response) {
+                            alert("Payment Successful! Payment ID: " + response.razorpay_payment_id);
+
+                            fetch("{% url 'payment_callback' %}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/x-www-form-urlencoded",
+                                    "X-CSRFToken": "{{ csrf_token }}"
+                                },
+                                body: new URLSearchParams({
+                                    "razorpay_payment_id": response.razorpay_payment_id,
+                                    "razorpay_order_id": response.razorpay_order_id,
+                                    "razorpay_signature": response.razorpay_signature
+                                })
+                            })
+                                .then(res => res.json())
+                                .then(data => {
+                                    if (data.status === "success") {
+                                        alert("Order Completed Successfully!");
+                                        window.location.href = "{% url 'order_page' %}";
+                                    } else {
+                                        alert("Payment Failed: " + data.message);
+                                    }
+                                })
+                                .catch(err => console.error("Error:", err));
+                        },
+
+                        "theme": { "color": "#F37254" }
+                    };
+
+                    let rzp1 = new Razorpay(options);
+                    rzp1.open();
+                })
+                .catch(error => console.error("Error fetching payment details:", error));
+        });
+    </script>

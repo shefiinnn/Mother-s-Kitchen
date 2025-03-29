@@ -1,0 +1,289 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #fff3e0;
+            color: #ffffff;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 50px;
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            color: white;
+            width: 100%;
+        }
+
+        .navbar h2 {
+            font-size: 24px;
+        }
+
+        .navbar a {
+            text-decoration: none;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 8px 15px;
+            border-radius: 5px;
+            background-color: #e63946;
+        }
+
+        .navbar a:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 40px auto;
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            color: white;
+        }
+
+        h3 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 22px;
+        }
+
+        h4 {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #252525;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+
+        thead {
+            background: #333;
+            color: #fff;
+            text-transform: uppercase;
+        }
+
+        tbody tr:hover {
+            background: #2d2d2d;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .category-delete {
+            display: block;
+            text-align: center;
+            margin-top: 5px;
+            background-color: #e63946;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .category-delete:hover {
+            background-color: #d32f2f;
+        }
+
+        @media screen and (max-width: 768px) {
+            .container {
+                width: 90%;
+                padding: 20px;
+            }
+
+            .navbar {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            th,
+            td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="navbar">
+        <h2>Admin Dashboard</h2>
+        <a href="{% url 'home' %}">Logout</a>
+    </div>
+
+    <div class="container">
+
+        <h3>Users</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td><a href="{% url 'delete_user' user.id %}" class="delete-btn">Delete</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #bbb;">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Chefs</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for chef in chefs %}
+                <tr>
+                    <td>{{ chef.name }}</td>
+                    <td>{{ chef.email }}</td>
+                    <td><a href="{% url 'delete_chef' chef.id %}" class="delete-btn">Delete</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #bbb;">No chefs found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h3>Food Posts</h3>
+        {% for category, foods in food_categories.items %}
+        <h4>{{ category }} <a href="{% url 'delete_category' category %}" class="category-delete">Delete All</a></h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for food in foods %}
+                <tr>
+                    <td>{{ food.title }}</td>
+                    <td>₹{{ food.price }}</td>
+                    <td><a href="{% url 'delete_food' food.id %}" class="delete-btn">Delete</a></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align: center; color: #bbb;">No food items in this category.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
+        <h2>Reports from Users</h2>
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>Chef</th>
+                <th>Phone</th>
+                <th>Food</th>
+                <th>Comment</th>
+                <th>Date</th>
+            </tr>
+            {% for report in reports %}
+            <tr>
+                <td>{{ report.id }}</td>
+                <td>{{ report.user.name }}</td>
+                <td>{{ report.chef.name }}</td>
+                <td>{{ report.chef.phone }}</td>
+                <td>{{ report.food.title }}</td>
+                <td>{{ report.comment }}</td>
+                <td>{{ report.created_at }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+
+        <h3>Reviews</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Chef</th>
+                    <th>Rating</th>
+                    <th>Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for review in reviews %}
+                <tr>
+                    <td>{{ review.user.name }}</td>
+                    <td>{{ review.chef.name }}</td>
+                    <td>{{ review.rating }} ⭐</td>
+                    <td>{{ review.comment }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #bbb;">No reviews yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,230 @@
+{%load static%}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #fff3e0;
+            color: #000000;
+            animation: fadeIn 1s ease-in-out forwards;
+        }
+
+        .order-container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+            top: 30px;
+        }
+
+        .navbar img {
+            height: 50px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            transition: 0.3s ease-in-out;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 50px;
+            background: linear-gradient(135deg, #ff9f43, #ff6f61);
+            color: white;
+            width: 100%;
+            height: 100px;
+
+        }
+
+        .navbar img {
+            height: 50px;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+        }
+
+        .nav-links li {
+            margin: 0 15px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: 0.3s;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+        .order-info {
+            flex: 1;
+        }
+
+        .cancel-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .cancel-btn:hover {
+            background-color: #c82333;
+        }
+
+        .payment-status.completed {
+            background-color: #4CAF50;
+            /* Green */
+            color: white;
+        }
+
+        .payment-status.pending {
+            background-color: #FFC107;
+            /* Yellow */
+            color: black;
+        }
+
+        .status.pending {
+            background-color: #FFC107;
+            /* Yellow */
+            color: black;
+        }
+
+        .status.accepted {
+            background-color: #4CAF50;
+            /* Green */
+            color: white;
+        }
+
+        .status.declined {
+            background-color: #F44336;
+            /* Red */
+            color: white;
+        }
+
+        .status.completed {
+            background-color: #2196F3;
+            /* Blue */
+            color: white;
+        }
+
+        .status.failed {
+            background-color: #9E9E9E;
+            /* Gray */
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar">
+            <img src="{% static 'images/logo2.png' %}" alt="Logo" style="height: 90px;width: 200px;">
+            <ul class="nav-links">
+                <li><a href="{% url 'userhm' %}">Home</a></li>
+                <li><a href="{% url 'user_profile' %}">Profile</a></li>
+                <li><a href="{% url 'order_page' %}">Cart</a></li>
+                <li><a href="{% url 'login' %}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="order-container">
+        <h2>My Orders</h2>
+        {% if orders %}
+        {% for order in orders %}
+        <div class="order-item">
+            <div class="order-info">
+                <p><strong>Food:</strong> {{ order.food.title }}</p>
+                <p><strong>Chef:</strong> {{ order.chef.name }}</p>
+                <p><strong>Quantity:</strong> {{ order.quantity }}</p>
+                <p><strong>Total Price:</strong> ₹{{ order.total_price }}</p>
+                <p>
+                    <strong>Payment Status:</strong>
+                    <span class="payment-status {% if order.payment_status %} completed {% else %} pending {% endif %}">
+                        {% if order.payment_status %} Completed {% else %} Pending {% endif %}
+                    </span>
+                </p>
+                <p>
+                    <strong>Order Status:</strong>
+                    <span class="status 
+                        {% if order.status == 'Pending' %} pending 
+                        {% elif order.status == 'Accepted' %} accepted 
+                        {% elif order.status == 'Declined' %} declined 
+                        {% elif order.status == 'Completed' %} completed 
+                        {% elif order.status == 'Failed' %} failed {% endif %}">
+                        {{ order.status }}
+                    </span>
+                </p>
+            </div>
+            {% if order.status == "Pending" %}
+            <form method="POST" action="{% url 'cancel_order' order.id %}">
+                {% csrf_token %}
+                <button type="submit" class="cancel-btn">Cancel</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% else %}
+        <p style="text-align:center;">No orders yet.</p>
+        {% endif %}
+    </div>
+</body>
+
+</html>
